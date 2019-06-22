@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>SPA Chapter 1 section 1.2.2</title>
+    <!-- stylesheets -->
+    <link rel="stylesheet" href="css/spa.css" type="text/css">
+    <link rel="stylesheet" href="css/spa.shell.css" type="text/css">
+    <style type="text/css">
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #777777;
+        }
+
+        #spa {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border-radius: 8px 8px 0 8px;
+            background: #ffffff;
+        }
+
+        .spa-slider {
+            position: absolute;
+            bottom: 0;
+            right: 2px;
+            width: 300px;
+            height: 16px;
+            cursor: pointer;
+            border-radius: 8px 0 0 0;
+            background-color: #ff0000;
+        }
+    </style>
+    <!-- third-party javascript -->
+    <script src="js/jq/jquery-3.4.1.min.js"></script>
+    <script src="js/jq/jquery.uriAnchor.js"></script>
+
+    <!-- our javascript -->
+    <script src="js/spa.js"></script>
+    <script src="js/spa.shell.js"></script>
+    <script>
+        $(function () {
+            spa.initModule($('#spa'));                                   
+        });
+    </script>
+</head>
+
+<body>
+    <div id="spa">
+
+
+    </div>
+</body>
+
+</html>
