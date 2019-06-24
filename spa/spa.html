@@ -2,12 +2,17 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- ie9+ rendering support for latest standards -->
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SPA Chapter 1 section 1.2.2</title>
-    <!-- stylesheets -->
+
+    <!-- third-party stylesheets -->
+
+    <!-- our stylesheets -->
     <link rel="stylesheet" href="css/spa.css" type="text/css">
+    <link rel="stylesheet" href="css/spa.chat.css">
     <link rel="stylesheet" href="css/spa.shell.css" type="text/css">
     <style type="text/css">
         body {
@@ -39,17 +44,20 @@
         }
     </style>
     <!-- third-party javascript -->
-    <!-- <script src="js/jq/jquery-3.4.1.min.js"></script> -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-    
+    <script src="js/jq/jquery-3.4.1.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script> -->
     <script src="js/jq/jquery.uriAnchor.js"></script>
 
     <!-- our javascript -->
     <script src="js/spa.js"></script>
+    <script src="js/spa.util.js"></script>
+    <script src="js/spa.model.js"></script>
     <script src="js/spa.shell.js"></script>
+    <script src="js/spa.chat.js"></script>
+
     <script>
         $(function () {
-            spa.initModule($('#spa'));                                   
+            spa.initModule($('#spa'));
         });
     </script>
 </head>

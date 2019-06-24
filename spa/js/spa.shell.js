@@ -288,7 +288,12 @@ spa.shell = (function () {
             schema_map: configMap.anchor_schema_map
         });
 
-        $(window).bind('hashchange',  onHashChange).trigger('hashchange');
+        // configure and initialize feature modules
+        spa.chat.configModule({});
+        spa.chat.initModule(jqueryMap.$chat);
+
+        // Handle URI anchor change event
+        $(window).bind('hashchange', onHashChange).trigger('hashchange');
         // test toggleChat
         // setTimeout(() => {
         //     toggleChat(true);
