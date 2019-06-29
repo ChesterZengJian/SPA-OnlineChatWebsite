@@ -12,7 +12,7 @@
     box-sizing: border-box;
 }
 h1,h2,h3,h4,h5,h6,p{
-    margin-bottom: 10px;
+    margin-bottom: 6pt;
 }
 ol,ul,dl{
     list-style-position: inside;
@@ -21,7 +21,7 @@ ol,ul,dl{
 
 /* Begin standard selectors */
 body{
-    font: 13px 'Trebuchet MS',Verdana,Helvetica,Arial,sans-serif;
+    font: 10pt 'Trebuchet MS',Verdana,Helvetica,Arial,sans-serif;
     color: #444444;
     background-color: #888888;
 }
@@ -43,17 +43,17 @@ a{
 /* Begin spa namespace selectors */
 #spa{
     position: absolute;
-    top: 8px;
-    left: 8px;
-    right: 8px;
-    bottom: 8px;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 
-    min-height: 500px;
-    min-width: 500px;
+    min-height: 15em;
+    min-width: 35em;
     overflow:hidden;
 
     background: #ffffff;
-    border-radius: 0 8px 0 8px;
+    /* border-radius: 0 8px 0 8px; */
 }
 /* End spa namespace selectors */
 
