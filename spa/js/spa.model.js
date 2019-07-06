@@ -53,16 +53,23 @@ spa.model = (function () {
         }
         , stateMap = {
             anon_user: null
+            , cid_serial: 0
             , people_cid_map: {}
             , people_db: TAFFY()
+            , user: null
         }
         , isFakeData = true
         , personProto
         , makePerson
         , people
-        , initModule
-        ;
+        , makeCid
+        , clearPeopleDb
+        , completeLogin
+        , removePerson
+        , initModule;
+    // ---------- END MODULE SCOPE VARIABLES ----------------
 
+    // ---------- BEGIN UTILITY METHODS ---------------------
     personProto = {
         get_is_user: function () {
             return this.cid === stateMap.user.cid;
@@ -99,17 +106,107 @@ spa.model = (function () {
         return person;
     }
 
-    people = {
-        get_db: function () {
-            return stateMap.people_db;
-        }
-        , get_cid_map: function () {
-            return stateMap.people_cid_map;
+    makeCid = function () {
+        return 'c' + String(stateMap.cid_serial++);
+    }
+
+    clearPeopleDb = function () {
+        var user = stateMap.user;
+        stateMap.people_db = TAFFY();
+        stateMap.people_cid_map = {};
+        if (user) {
+            stateMap.people_db.insert(user);
+            stateMap.people_cid_map[user.cid] = user;
         }
     }
-    // ---------- END MODULE SCOPE VARIABLES ----------------
 
-    // ---------- BEGIN UTILITY METHODS ---------------------
+    completeLogin = function (user_list) {
+        var user_map = user_list[0];
+        delete stateMap.people_cid_map[user_map.cid];
+        stateMap.user.cid = user_map._id;
+        stateMap.user.id = user_map._id;
+        stateMap.user.css_map = user_map.css_map;
+        stateMap.people_cid_map[user_map._id] = stateMap.user;
+
+        $.gevent.publish('spa-login', [stateMap.user]);
+    }
+
+    removePerson = function (person) {
+        if (!person) {
+            return false;
+        }
+        if (person.id === configMap.anon_id) {
+            return false;
+        }
+
+        stateMap.people_db({ cid: person.cid }).remove();
+        if (person.id) {
+            delete stateMap.people_cid_map[people.cid];
+        }
+        return true;
+    }
+
+    people = (function () {
+        var
+            get_by_cid
+            , get_db
+            , get_user
+            , login
+            , logout;
+
+        get_by_cid = function (cid) {
+            return stateMap.people_cid_map[cid];
+        }
+
+        get_db = function () {
+            return stateMap.people_db;
+        }
+
+        get_user = function () {
+            return stateMap.user;
+        }
+
+        login = function (name) {
+            var sio = isFakeData ? spa.fake.mockSio : spa.data.getSio();
+
+            stateMap.user = makePerson({
+                cid: makeCid()
+                , css_map: {
+                    top: 25
+                    , left: 25
+                    , 'background-color': '#8f8'
+                }
+                , name: name
+            });
+
+            sio.on('userupdate', completeLogin);
+            sio.emit('addUser', {
+                cid: stateMap.user.cid
+                , css_map: stateMap.user.css_map
+                , name: stateMap.user.name
+            });
+        };
+
+        logout = function () {
+            var
+                is_removed
+                , user = stateMap.user;
+
+            is_removed = removePerson(user);
+            stateMap.user = stateMap.anon_user;
+
+            $gevent.publish('spa-logout', [user]);
+            return is_removed;
+        }
+
+        return {
+            get_by_cid: get_by_cid
+            , get_db: get_db
+            , get_user: get_user
+            , login: login
+            , logout: logout
+        };
+    }());
     // ---------- END UTILITY METHODS -----------------------
 
     // ---------- BEGIN DOM METHODS -------------------------

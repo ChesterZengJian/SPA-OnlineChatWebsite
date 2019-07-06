@@ -68,6 +68,7 @@ var spa = (function ($) {
     // sets initial state and provides feature
     //
     initModule = function ($container) {
+        spa.model.initModule();
         spa.shell.initModule($container);
     };
 

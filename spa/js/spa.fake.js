@@ -14,7 +14,12 @@
 spa.fake = (function () {
     'use strict';
     // ---------- BEGIN MODULE SCOPE VARIABLES --------------
-    var getPeopleList;
+    var
+        getPeopleList
+        , fakeIdSerial
+        , makeFakeId
+        , mockSio;
+    fakeIdSerial = 5;
     // ---------- END MODULE SCOPE VARIABLES ----------------
 
     // ---------- BEGIN UTILITY METHODS ---------------------
@@ -27,6 +32,10 @@ spa.fake = (function () {
     // ---------- END EVENT HANDLERS ------------------------
 
     // ---------- BEGIN PULIC METHODS -----------------------
+    makeFakeId = function () {
+        return 'id_' + String(fakeIdSerial++);
+    };
+
     getPeopleList = function () {
         return [
             {
@@ -67,8 +76,37 @@ spa.fake = (function () {
             }
         ]
     }
+
+    mockSio = (function () {
+        var
+            on_sio
+            , emit_sio
+            , callback_map = {};
+        on_sio = function (msg_type,callback) {
+            callback_map[msg_type]=callback;
+        };
+        emit_sio = function (msg_type, data) {
+            if (msg_type === 'addUser' && callback_map.userupdate) {
+                setTimeout(function () {
+                    callback_map.userupdate(
+                        [{
+                            _id: makeFakeId()
+                            , name: data.name
+                            , css_map: data.css_map
+                        }]
+                    );
+                }, 3000)
+            }
+        };
+        return {
+            emit: emit_sio
+            , on: on_sio
+        };
+    }());
+
     return {
         getPeopleList: getPeopleList
+        , mockSio: mockSio
     };
     // ---------- END PULIC METHODS -------------------------
 }());
