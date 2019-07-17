@@ -13,7 +13,23 @@
 /**global  */
 
 'use strict'
-var configRoutes;
+var configRoutes
+    , mongodb = require('mongodb')
+    , mongoServer = new mongodb.Server(
+        'localhost'
+        , 27017
+    )
+    , dbHandle = new mongodb.Db(
+        'spa'
+        , mongoServer
+        , { safe: true }
+    )
+    ;
+
+dbHandle.open(function () {
+    console.log('** Connected to MongoDB **');
+});
+
 configRoutes = function (app, server) {
 
     app.all('/user/*?', function (request, response, next) {
