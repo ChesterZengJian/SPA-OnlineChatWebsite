@@ -57,6 +57,7 @@ spa.model = (function () {
             , people_cid_map: {}
             , people_db: TAFFY()
             , user: null
+            , is_connected: false
         }
         , isFakeData = true
         , personProto
@@ -66,6 +67,7 @@ spa.model = (function () {
         , clearPeopleDb
         , completeLogin
         , removePerson
+        , chat
         , initModule;
     // ---------- END MODULE SCOPE VARIABLES ----------------
 
@@ -195,7 +197,7 @@ spa.model = (function () {
             is_removed = removePerson(user);
             stateMap.user = stateMap.anon_user;
 
-            $gevent.publish('spa-logout', [user]);
+            $.gevent.publish('spa-logout', [user]);
             return is_removed;
         }
 
@@ -205,6 +207,104 @@ spa.model = (function () {
             , get_user: get_user
             , login: login
             , logout: logout
+        };
+    }());
+
+    // The chat object API
+    // -------------------
+    // The chat object is available at spa.model.chat
+    // The chat object provides methods and events too manage chat messaging.
+    // Its public methods include:
+    // * join() - joins the chat room. This routine sets up the chat protocol with the backend 
+    // including publishers for 'spa-listchange' and 'spa-updatechat' global custom events.
+    // If the current user is anonymous, join() aborts and return false.
+    // * get_chatee() - return the person object with whom the user is chatting.
+    // If there is no chatee, null is returned.
+    // * set_chatee(<person_id>) - set the chatee to the person identified by person_id.
+    // If the person_id is not exist in the person list, the chatee is set to null.
+    // If the person requested is already in the chatee, then return false.
+    // It publishes a 'spa-updatechat' global custom event.
+    // * send_msg(msg_text) - send a message to the chatee.
+    // It published 'spa-updatechat' global custom event.
+    // If the user is the anonymous or the chatee  is null, it aborts and returns false.
+    // *
+    // 
+    chat = (function () {
+        var
+            _publish_listchange
+            , _update_list
+            , _leave_chat
+            , join_chat;
+
+        _update_list = function (arg_list) {
+            var
+                i
+                , person_map
+                , make_person_map
+                , people_list = arg_list[0];
+
+            clearPeopleDb();
+
+            PERSON:
+            for (i = 0; i < people_list.length; i++) {
+                person_map = people_list[i];
+
+                if (!person_map.name) {
+                    continue PERSON;
+                }
+
+                // if user defined, update css_map and skip remainder
+                if (stateMap.user && stateMap.user.id === person_map._id) {
+                    stateMap.user.css_map = person_map.css_map;
+                    continue PERSON;
+                }
+
+                make_person_map = {
+                    cid: person_map._id
+                    , css_map: person_map.css_map
+                    , id: person_map._id
+                    , name: person_map.name
+                };
+
+                makePerson(make_person_map);
+            }
+            stateMap.people_db.sort('name');
+        };
+
+        _publish_listchange = function (arg_list) {
+            _update_list(arg_list);
+            $.gevent.publish('spa-listchange', [arg_list]);
+        };
+
+        _leave_chat = function () {
+            var sio = isFakeData ? spa.fake.mockSio : spa.data.getSio();
+            stateMap.is_connected = false;
+            if (sio) {
+                sio.emit('leavechat');
+            }
+        };
+
+        join_chat = function () {
+            var sio;
+
+            if (stateMap.is_connected) {
+                return false;
+            }
+
+            if (stateMap.user.get_is_anon()) {
+                console.warn('User must be defined before joining chat');
+                return false;
+            }
+
+            sio = isFakeData ? spa.fake.mockSio : spa.data.getSio();
+            sio.on('listchange', _publish_listchange);
+            stateMap.is_connected = true;
+            return true;
+        };
+
+        return {
+            _leave: _leave_chat
+            , join: join_chat
         };
     }());
     // ---------- END UTILITY METHODS -----------------------
@@ -245,6 +345,7 @@ spa.model = (function () {
     return {
         initModule: initModule
         , people: people
+        , chat: chat
     };
     // ---------- END PULIC METHODS -------------------------
 }());

@@ -24,7 +24,7 @@ spa.shell = (function () {
                 + '<p>javascript end to end</p>'
                 + '</div>'
                 + '<div class="spa-shell-head-acct"></div>'
-                + '<div class="spa-shell-head-search"></div>'
+                // + '<div class="spa-shell-head-search"></div>'
                 + '</div>'
                 + '<div class="spa-shell-main">'
                 + '<div class="spa-shell-main-nav"></div>'

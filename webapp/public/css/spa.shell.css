@@ -33,8 +33,15 @@
 .spa-shell-head-acct{
     top:4px;
     right: 0;
-    width: 64px;
+    width: 210px;
     height: 32px;
+    line-height: 32px;
+    background: #888888;
+    color: #ffffff;
+    text-align: center;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
     background: green;
 }
 .spa-shell-head-search{

@@ -14,28 +14,50 @@
 
 'use strict'
 var configRoutes
-    , mongodb = require('mongodb')
-    , mongoServer = new mongodb.Server(
-        'localhost'
-        , 27017
-    )
-    , dbHandle = new mongodb.Db(
-        'spa'
-        , mongoServer
-        , { safe: true }
-    )
-    ;
+    , dbName = 'spa'
+    , db
+    , mongodb = require('mongodb').MongoClient
+    , url = 'mongodb://localhost/spa'
+    , dbHandle
+    , makeMongoId = mongodb.ObjectID
+    , getAllObjs
+    , addObj
+    , updateObj
+    , objTypeMap = { 'user': {} };
+;
 
-dbHandle.open(function () {
-    console.log('** Connected to MongoDB **');
-});
+dbHandle = function (err, client) {
+    db = client.db(dbName);
+    console.log('Connected successfully');
+};
+mongodb.connect(url, { useNewUrlParser: true }, dbHandle);
+
+getAllObjs = function (obj_type, callback) {
+    const collection = db.collection(obj_type);
+    collection.find({}).toArray(function (err, map_list) {
+        // response.send(map_list);
+        callback(map_list);
+    })
+};
+addObj = function (obj_type, callback) {
+    const collection = db.collection(obj_type);
+    collection.insertMany(obj_type, function (err, result_map) {
+        console.log('insert successfully');
+        callback(result_map);
+    })
+}
 
 configRoutes = function (app, server) {
 
     app.all('/user/*?', function (request, response, next) {
         response.contentType('json');
-        next();
-    })
+        if (objTypeMap[request.params.obj_type]) {
+            next();
+        }
+        else {
+            response.send({ error_msg: request.params.obj_type + ' is not a valid object type' });
+        }
+    });
 
     app.get('/:obj_type/read/:id([0-9]+)+', function (request, response) {
         response.send({
@@ -48,31 +70,37 @@ configRoutes = function (app, server) {
         response.redirect('/spa.html');
     });
 
-    app.get('/user/list', function (request, response) {
-        response.contentType('json');
-        response.send({ title: 'use list' });
+    app.get('/:obj_type/list', function (request, response) {
+        getAllObjs(request.params.obj_type, function (map_list) {
+            response.send(map_list);
+        })
+        // response.contentType('json');
+        // response.send({ title: 'use list' });
     });
 
-    app.post('user/create', function (request, response) {
-        response.contentType('json');
-        response.send({ title: 'user created' })
+    app.post('/:obj_type/create', function (request, response) {
+        addObj(request.obj_type, function (result_map) {
+            response.send(result_map);
+        });
+        // response.contentType('json');
+        // response.send({ title: 'user created' })
     });
 
-    app.get('/user/read/:id([0-9]+)', function (request, response) {
+    app.get('/:obj_type/read/:id([0-9]+)', function (request, response) {
         response.contentType('json');
         response.send({
             title: 'user with id ' + request.params.id + ' found'
         });
     });
 
-    app.post('/user/update:id([0-9]+)', function (request, response) {
+    app.post('/:obj_type/update:id([0-9]+)', function (request, response) {
         response.contentType('json');
         response.send({
             title: 'user with id ' + request.params.id + ' updated '
         });
     });
 
-    app.get('/user/delete/:id([0-9]+)', function (request, response) {
+    app.get('/:obj_type/delete/:id([0-9]+)', function (request, response) {
         response.contentType('json');
         response.send({
             title: 'user with id ' + request.params.id + ' deleted'
