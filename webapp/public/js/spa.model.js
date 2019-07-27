@@ -15,37 +15,7 @@
 spa.model = (function () {
     'use strict';
     // ---------- BEGIN MODULE SCOPE VARIABLES --------------
-    // Begin the people object API
-    // The people object is available at spa.model.people
-    // The people object provides methods and events to manage
-    // a collection of person objects. Its public methods include:
-    //  * get_user()
-    //  * get_db()
-    //  * get_by_cid(<client_id>)
-    //  * login(<user_name>)
-    //  * logout()
-    // 
-    // jQuery global custom events published by the objecct include:
-    //  * 'spa-login' is published when a user login process completes. 
-    // The updated user object is provided as data
-    //  * 'spa-logout' is published when a logout completes.
-    // The format user object is provided as data
-    // 
-    // Each person is represented by a person object.
-    // Person objects provide the following methods:
-    //  * get_is_user() - return true if object is the current user
-    //  * get_is_anon() - return true if object is annoymous
-    // 
-    // The attributes for a person object include:
-    //  * cid - string client id. This is always defined, 
-    // and is only different from the id attribute if the client
-    // data is not synced with the backend.
-    //  * id - the unique id. This may be undefined if the object is 
-    // not synced with the backend.
-    //  * name - the string name of the user.
-    //  * css_map - a map of attributes used for avatar presentation.
-    // 
-    // End the people object API
+
 
     var
         configMap = {
@@ -129,6 +99,7 @@ spa.model = (function () {
         stateMap.user.id = user_map._id;
         stateMap.user.css_map = user_map.css_map;
         stateMap.people_cid_map[user_map._id] = stateMap.user;
+        chat.join();
 
         $.gevent.publish('spa-login', [stateMap.user]);
     }
@@ -148,6 +119,37 @@ spa.model = (function () {
         return true;
     }
 
+    // Begin the people object API
+    // The people object is available at spa.model.people
+    // The people object provides methods and events to manage
+    // a collection of person objects. Its public methods include:
+    //  * get_user()
+    //  * get_db()
+    //  * get_by_cid(<client_id>)
+    //  * login(<user_name>)
+    //  * logout()
+    // 
+    // jQuery global custom events published by the objecct include:
+    //  * 'spa-login' is published when a user login process completes. 
+    // The updated user object is provided as data
+    //  * 'spa-logout' is published when a logout completes.
+    // The format user object is provided as data
+    // 
+    // Each person is represented by a person object.
+    // Person objects provide the following methods:
+    //  * get_is_user() - return true if object is the current user
+    //  * get_is_anon() - return true if object is annoymous
+    // 
+    // The attributes for a person object include:
+    //  * cid - string client id. This is always defined, 
+    // and is only different from the id attribute if the client
+    // data is not synced with the backend.
+    //  * id - the unique id. This may be undefined if the object is 
+    // not synced with the backend.
+    //  * name - the string name of the user.
+    //  * css_map - a map of attributes used for avatar presentation.
+    // 
+    // End the people object API
     people = (function () {
         var
             get_by_cid
@@ -191,11 +193,13 @@ spa.model = (function () {
 
         logout = function () {
             var
-                is_removed
-                , user = stateMap.user;
+                // is_removed
+                user = stateMap.user;
 
+            chat._leave();
             is_removed = removePerson(user);
             stateMap.user = stateMap.anon_user;
+            clearPeopleDb();
 
             $.gevent.publish('spa-logout', [user]);
             return is_removed;
@@ -232,15 +236,23 @@ spa.model = (function () {
     chat = (function () {
         var
             _publish_listchange
+            , _publish_updatechat
+            , get_chatee
+            , send_msg
+            , set_chatee
             , _update_list
             , _leave_chat
-            , join_chat;
+            , join_chat
+            , chatee = null
+            , update_avatar;
 
         _update_list = function (arg_list) {
             var
                 i
+                , person
                 , person_map
                 , make_person_map
+                , is_chatee_online = false
                 , people_list = arg_list[0];
 
             clearPeopleDb();
@@ -259,6 +271,10 @@ spa.model = (function () {
                     continue PERSON;
                 }
 
+                if (chatee && chatee.id === make_person_map.id) {
+                    is_chatee_online = true;
+                }
+
                 make_person_map = {
                     cid: person_map._id
                     , css_map: person_map.css_map
@@ -266,10 +282,32 @@ spa.model = (function () {
                     , name: person_map.name
                 };
 
-                makePerson(make_person_map);
+                person = makePerson(make_person_map);
+
+                if (chatee && chatee.id === make_person_map.id) {
+                    is_chatee_online = true;
+                    chatee.person;
+                }
             }
             stateMap.people_db.sort('name');
+
+            if (chatee && !is_chatee_online) {
+                set_chatee('');
+            }
         };
+
+        _publish_updatechat = function (arg_list) {
+            var msg_map = arg_list[0];
+
+            if (!chatee) {
+                set_chatee(msg_map.sender_id);
+            }
+            else if (msg_map.sender_id !== stateMap.user.id && msg_map.sender_id !== chatee.id) {
+                set_chatee(msg_map.sender_id);
+            }
+
+            $.gevent.publish('spa-updatechat', [msg_map]);
+        }
 
         _publish_listchange = function (arg_list) {
             _update_list(arg_list);
@@ -278,11 +316,16 @@ spa.model = (function () {
 
         _leave_chat = function () {
             var sio = isFakeData ? spa.fake.mockSio : spa.data.getSio();
+            chatee = null;
             stateMap.is_connected = false;
             if (sio) {
                 sio.emit('leavechat');
             }
         };
+
+        get_chatee = function () {
+            return chatee;
+        }
 
         join_chat = function () {
             var sio;
@@ -298,13 +341,69 @@ spa.model = (function () {
 
             sio = isFakeData ? spa.fake.mockSio : spa.data.getSio();
             sio.on('listchange', _publish_listchange);
+            sio.on('updatechat', _publish_updatechat);
             stateMap.is_connected = true;
             return true;
         };
 
+        send_msg = function (msg_text) {
+            var msg_map
+                , sio = isFakeData ? spa.fake.mockSio : spa.getSio();
+
+            if (!sio) {
+                return false;
+            }
+
+            if (!(stateMap.user && chatee)) {
+                return false;
+            }
+
+            msg_map = {
+                dest_id: chatee.id
+                , dest_name: chatee.name
+                , sender_id: stateMap.user.id
+                , msg_text: msg_text
+            };
+
+            _publish_updatechat([msg_map]);
+            sio.emit('updatechat', msg_map);
+            return true;
+        };
+
+        set_chatee = function (person_id) {
+            var new_chatee;
+            new_chatee = stateMap.people_cid_map[person_id];
+            if (new_chatee) {
+                if (chatee && chatee.id === new_chatee.id) {
+                    return false;
+                }
+            }
+            else {
+                new_chatee = null;
+            }
+
+            $.gevent.publish('spa-setchatee', {
+                old_chatee: chatee
+                , new_chatee: new_chatee
+            });
+            chatee = new_chatee;
+            return true;
+        };
+
+        update_avatar = function (avatar_update_map) {
+            var sio = isFakeData ? spa.fake.mockSio : spa.data.getSio();
+            if (sio) {
+                sio.emit('updateavatar', avatar_update_map);
+            }
+        };
+
         return {
             _leave: _leave_chat
+            , get_chatee: get_chatee
+            , send_msg: send_msg
+            , set_chatee: set_chatee
             , join: join_chat
+            , update_avatar: update_avatar
         };
     }());
     // ---------- END UTILITY METHODS -----------------------
