@@ -84,7 +84,7 @@ spa.chat = (function () {
         , setSliderPosition
         , removeSlider
         , handleResize
-        , onClickToggle
+        , onTapToggle
         , writeChat
         , writeAlert
         , clearChat
@@ -139,9 +139,9 @@ spa.chat = (function () {
             , $send: $slider.find('.spa-chat-msg-send')
             , $form: $slider.find('.spa-chat-msg-form')
             , $window: $(window)
-            , $msgs: $slider.find('.spa-chat-msgs')
-            , $box: $slider.find('.spa-chat-box')
-            , $input: $slider.find('.spa-chat-input input[type=text]')
+            // , $msgs: $slider.find('.spa-chat-msgs')
+            // , $box: $slider.find('.spa-chat-box')
+            // , $input: $slider.find('.spa-chat-input input[type=text]')
         };
     };
     // End DOM method /setJqueryMap/
@@ -186,7 +186,7 @@ spa.chat = (function () {
     // ---------- END DOM METHODS --------------------------- b
 
     // ---------- BEGIN EVENT HANDLERS ----------------------
-    // Begin Event handler /onClickToggle/
+    // Begin Event handler /onTapToggle/
     // Example   : 
     //  * 
     // Purpose   : 
@@ -210,7 +210,7 @@ spa.chat = (function () {
         }
         return false;
     }
-    // End DOM method /onClickToggle/
+    // End DOM method /onTapToggle/
     // ---------- END EVENT HANDLERS ------------------------
 
     // ---------- BEGIN PULIC METHODS -----------------------
@@ -301,7 +301,7 @@ spa.chat = (function () {
         var msg_class = is_user ? 'spa-chat-msg-log-me' : 'spa-chat-msg-log-msg';
 
         jqueryMap.$msg_log.append(
-            '<div class="msg_class">' +
+            '<div class="' + msg_class + '">' +
             spa.util_b.encodeHtml(person_name) + ':' +
             spa.util_b.encodeHtml(text) +
             '</div>'
@@ -343,7 +343,7 @@ spa.chat = (function () {
             return false;
         }
 
-        chatee_id = $tapped.attr('data-id');
+        chatee_id = $tapped.attr('data_id');
         if (!chatee_id) { return false; }
 
         configMap.chat_model.set_chatee(chatee_id);
@@ -369,7 +369,7 @@ spa.chat = (function () {
             .find('.spa-chat-list-name')
             .removeClass('spa-x-select')
             .end()
-            .find('[data-id=' + arg_map.new_chatee.id + ']')
+            .find('[data_id='+ arg_map.new_chatee.id + ']')
             .addClass('spa-x-select');
 
         writeAlert('Now chatting with ' + arg_map.new_chatee.name);
@@ -381,7 +381,7 @@ spa.chat = (function () {
         var list_html = String()
             , people_db = configMap.people_model.get_db()
             , chatee = configMap.chat_model.get_chatee();
-        people_db.each(function (person, idx) {
+        people_db().each(function (person, idx) {
             var select_class = '';
 
             if (person.get_is_anon() || person.get_is_user()) {
@@ -393,8 +393,8 @@ spa.chat = (function () {
             }
 
             list_html +=
-                '<div class="spa-chat-list-note ' +
-                select_class + '" data_id=" ' + person.id + '">' +
+                '<div class="spa-chat-list-name ' +
+                select_class + '" data_id="' + person.id + '">' +
                 spa.util_b.encodeHtml(person.name) +
                 '</div>';
         });
@@ -589,7 +589,7 @@ spa.chat = (function () {
 
         // initialize chat slider to default title and state
         jqueryMap.$toggle.prop('title', configMap.slider_closed_title);
-        jqueryMap.$head.click(onClickToggle);
+        jqueryMap.$head.click(onTapToggle);
         stateMap.position_type = 'closed';
 
         $list_box = jqueryMap.$list_box;

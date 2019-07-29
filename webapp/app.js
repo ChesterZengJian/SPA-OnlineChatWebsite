@@ -18,7 +18,8 @@ var
     , express = require('express')
     , routes = require('./routes')
     , app = express()
-    , server = http.createServer(app);
+    , server = http.createServer(app)
+    // , io = require('socket.io')(server);
 
 // app.use(express.logger());
 // app.use(express.bodyParser());

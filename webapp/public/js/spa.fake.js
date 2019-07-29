@@ -107,7 +107,7 @@ spa.fake = (function () {
             }
         }
         , {
-            name: 'Pebbles'
+            name: 'Andy'
             , _id: 'id_04'
             , css_map: {
                 top: 100

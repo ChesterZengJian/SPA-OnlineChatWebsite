@@ -28,7 +28,7 @@ var configRoutes
 
 dbHandle = function (err, client) {
     db = client.db(dbName);
-    console.log('Connected successfully');
+    console.log('Connected Db successfully');
 };
 mongodb.connect(url, { useNewUrlParser: true }, dbHandle);
 
