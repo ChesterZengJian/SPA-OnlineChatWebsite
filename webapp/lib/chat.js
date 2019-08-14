@@ -120,7 +120,7 @@ chatObj = {
                     else {
                         socket.emit('updatechat', {
                             sender_id: chat_map.sender_id
-                            , msg_text: chat_map.dest_name + ' has gone offline ';
+                            , msg_text: chat_map.dest_name + ' has gone offline '
                         })
                     }
                 });

@@ -21,6 +21,7 @@ var loadSchema
     , readObj
     , updateObj
     , destroyObj
+    , db
     , dbName = 'spa'
     , url = 'mongodb://localhost/spa'
     , mongodb = require('mongodb').MongoClient
@@ -206,8 +207,9 @@ mongodb.connect(url, { useNewUrlParser: true }, dbHandle);
         , schema_path;
     for (schema_name in objTypeMap) {
         if (objTypeMap.hasOwnProperty(schema_name)) {
-            schema_path = _dirname + '/' + schema_name + '.json';
-            loadSchema(schema_map, schema_path);
+            schema_path = __dirname + '/' + schema_name + '.json';
+            console.log(schema_path);
+            loadSchema(schema_name, schema_path);
         }
     }
 }());
