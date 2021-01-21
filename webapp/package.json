@@ -7,6 +7,6 @@
         "bson": "^4.0.2",
         "mongodb": "^3.3.0-beta2",
         "JSV": "4.0.x",
-        "socket.io": "0.9.x"
+        "socket.io": "2.4.x"
     }
 }
