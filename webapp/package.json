@@ -3,7 +3,7 @@
     "version": "0.0.3",
     "private": true,
     "dependencies": {
-        "express": "3.2.x",
+        "express": "4.17.x",
         "bson": "^4.0.2",
         "mongodb": "^3.3.0-beta2",
         "JSV": "4.0.x",
